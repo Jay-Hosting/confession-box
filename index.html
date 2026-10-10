@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Confession Box</title>
+<meta name="description" content="Anonymous confessions for the Velvet Collar Games group.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#2a0a1c">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💜</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;1,6..96,400;1,6..96,600&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* ---------- tokens ---------- */
+  :root {
+    --velvet-deep: #1f0715;
+    --velvet: #2a0a1c;
+    --velvet-raised: #3a1028;
+    --lattice: #5a1d3d;
+    --brass: #d9a441;
+    --brass-soft: #e8c47a;
+    --slip: #f4dfe2;
+    --slip-ink: #2b0d1d;
+    --slip-muted: #7a4a5e;
+    --text: #f4e6ea;
+    --text-muted: #c8a6b4;
+    --danger: #ff9c9c;
+    --radius-slip: 3px;
+    --display: "Bodoni Moda", "Didot", Georgia, serif;
+    --body: "Atkinson Hyperlegible", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--velvet);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 1.0625rem;
+    line-height: 1.55;
+  }
+  button, input, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* ---------- the confessional screen (the one bold element) ---------- */
+  .screen {
+    position: relative;
+    background-color: var(--velvet-deep);
+    background-image:
+      linear-gradient(45deg, transparent 46%, var(--lattice) 46%, var(--lattice) 54%, transparent 54%),
+      linear-gradient(-45deg, transparent 46%, var(--lattice) 46%, var(--lattice) 54%, transparent 54%);
+    background-size: 34px 34px;
+    border-bottom: 3px solid var(--brass);
+  }
+  .screen::after {
+    /* candle glow through the lattice */
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 90% at 50% 110%, rgba(217,164,65,.28), transparent 70%),
+                linear-gradient(to bottom, rgba(31,7,21,.2), rgba(31,7,21,.75));
+    pointer-events: none;
+  }
+  .screen-inner {
+    position: relative; z-index: 1;
+    max-width: 680px; margin: 0 auto;
+    padding: 56px 16px 40px;
+  }
+  .title {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(2.6rem, 9vw, 4.4rem);
+    line-height: .95;
+    letter-spacing: -.01em;
+    margin: 0 0 14px;
+    color: var(--slip);
+    text-shadow: 0 2px 24px rgba(0,0,0,.6);
+  }
+  .title small {
+    display: block;
+    font-style: normal;
+    font-weight: 500;
+    font-size: .32em;
+    letter-spacing: .02em;
+    color: var(--brass-soft);
+    margin-bottom: 10px;
+  }
+  .lede { max-width: 46ch; margin: 0 0 24px; color: var(--text); text-shadow: 0 1px 8px rgba(0,0,0,.8); }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 0; border-radius: 999px;
+    padding: 12px 22px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .btn-brass { background: var(--brass); color: var(--slip-ink); box-shadow: 0 6px 18px rgba(217,164,65,.25); }
+  .btn-brass:hover { background: var(--brass-soft); }
+  .btn-ghost { background: transparent; color: var(--text); border: 1px solid rgba(244,230,234,.35); }
+  .btn-ghost:hover { border-color: var(--text); }
+  .btn[disabled] { opacity: .55; cursor: wait; }
+
+  /* ---------- gate ---------- */
+  .gate { max-width: 680px; margin: 0 auto; padding: 32px 16px 64px; }
+  .gate h2, .wall-head h2 {
+    font-family: var(--display); font-weight: 500; font-size: 1.6rem; margin: 0 0 12px;
+  }
+  .rules { list-style: none; margin: 0 0 28px; padding: 0; }
+  .rules li { padding: 12px 0 12px 34px; position: relative; border-bottom: 1px solid rgba(200,166,180,.18); }
+  .rules li::before { content: "💜"; position: absolute; left: 0; top: 12px; font-size: .95rem; }
+  .rules strong { color: var(--slip); }
+  .field { display: block; margin-bottom: 16px; }
+  .field-label { display: block; font-weight: 700; margin-bottom: 6px; }
+  .input {
+    width: 100%; max-width: 320px;
+    background: var(--velvet-deep); border: 1px solid var(--lattice); border-radius: 8px;
+    padding: 12px 14px; font-size: 1.1rem; letter-spacing: .04em;
+  }
+  .check { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 20px; max-width: 52ch; }
+  .check input { width: 20px; height: 20px; margin-top: 3px; accent-color: var(--brass); flex: none; }
+  .error { color: var(--danger); min-height: 1.5em; margin: 0 0 12px; }
+
+  /* ---------- wall ---------- */
+  .wall { max-width: 680px; margin: 0 auto; padding: 32px 16px 96px; }
+  .wall-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+  .wall-head h2 { margin: 0; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 28px; }
+  .chip {
+    border: 1px solid var(--lattice); background: transparent; color: var(--text-muted);
+    border-radius: 999px; padding: 6px 14px; cursor: pointer; font-size: .95rem;
+  }
+  .chip[aria-pressed="true"] { background: var(--velvet-raised); color: var(--slip); border-color: var(--brass); }
+  .refresh { background: none; border: 0; color: var(--text-muted); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; font-size: .95rem; padding: 4px; }
+
+  .slips { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; }
+  .slip {
+    background: var(--slip);
+    color: var(--slip-ink);
+    border-radius: var(--radius-slip);
+    padding: 22px 22px 16px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.4) inset, 0 14px 30px -12px rgba(0,0,0,.7);
+    position: relative;
+  }
+  /* slips are tucked into the box at slightly different angles */
+  .slip:nth-child(3n+1) { transform: rotate(-.6deg); }
+  .slip:nth-child(3n+2) { transform: rotate(.45deg); }
+  .slip:nth-child(3n)   { transform: rotate(-.2deg); }
+  @media (prefers-reduced-motion: reduce) { .slip { transform: none !important; } }
+
+  .slip-meta { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; font-size: .85rem; color: var(--slip-muted); }
+  .heat { font-weight: 700; color: var(--slip-ink); }
+  .heat-mild::before { content: "🌸 "; }
+  .heat-spicy::before { content: "🌶️ "; }
+  .heat-fire::before { content: "🔥 "; }
+  .slip-text {
+    font-family: var(--display);
+    font-size: 1.32rem;
+    line-height: 1.45;
+    margin: 0 0 16px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .cw-wrap { position: relative; }
+  .cw-wrap.veiled .slip-text { filter: blur(9px); user-select: none; }
+  .cw-btn {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    background: rgba(244,223,226,.55); border: 0; cursor: pointer; color: var(--slip-ink);
+    font-size: .95rem; text-align: center; padding: 8px;
+  }
+  .cw-btn strong { font-size: 1rem; }
+  .cw-wrap:not(.veiled) .cw-btn { display: none; }
+
+  .reactions { display: flex; flex-wrap: wrap; gap: 6px; border-top: 1px dashed rgba(122,74,94,.4); padding-top: 12px; }
+  .react {
+    display: inline-flex; align-items: center; gap: 5px;
+    border: 1px solid rgba(122,74,94,.35); background: rgba(255,255,255,.35);
+    border-radius: 999px; padding: 4px 10px; cursor: pointer; font-size: .95rem; color: var(--slip-ink);
+    transition: background .15s, border-color .15s;
+  }
+  .react:hover { border-color: var(--slip-muted); }
+  .react[aria-pressed="true"] { background: #e9b9c6; border-color: #9c3d63; }
+  .react .n { font-variant-numeric: tabular-nums; min-width: 1ch; font-weight: 700; }
+  .react .n:empty { display: none; }
+  .react.pop { animation: pop .25s ease-out; }
+  @keyframes pop { 50% { transform: scale(1.18); } }
+  @media (prefers-reduced-motion: reduce) { .react.pop { animation: none; } }
+
+  .empty { color: var(--text-muted); padding: 32px 0; max-width: 44ch; }
+  .footer-note { color: var(--text-muted); font-size: .92rem; margin-top: 48px; max-width: 56ch; }
+
+  /* ---------- composer ---------- */
+  dialog {
+    width: min(600px, calc(100vw - 24px));
+    max-height: calc(100vh - 24px);
+    border: 1px solid var(--lattice); border-top: 3px solid var(--brass);
+    border-radius: 10px; padding: 0;
+    background: var(--velvet-raised); color: var(--text);
+  }
+  dialog::backdrop { background: rgba(15,3,10,.75); }
+  .composer { padding: 24px 20px 20px; }
+  .composer h2 { font-family: var(--display); font-style: italic; font-weight: 400; font-size: 1.9rem; margin: 0 0 6px; }
+  .composer p.hint { color: var(--text-muted); margin: 0 0 18px; font-size: .95rem; }
+  .composer textarea {
+    width: 100%; min-height: 150px; resize: vertical;
+    background: var(--slip); color: var(--slip-ink);
+    border: 0; border-radius: var(--radius-slip);
+    padding: 14px; font-family: var(--display); font-size: 1.2rem; line-height: 1.45;
+  }
+  .count { text-align: right; font-size: .85rem; color: var(--text-muted); margin: 4px 0 14px; font-variant-numeric: tabular-nums; }
+  .count.over { color: var(--danger); }
+  fieldset { border: 0; padding: 0; margin: 0 0 16px; }
+  legend { font-weight: 700; margin-bottom: 8px; padding: 0; }
+  .heat-pick { display: flex; flex-wrap: wrap; gap: 8px; }
+  .heat-pick label {
+    border: 1px solid var(--lattice); border-radius: 999px; padding: 7px 14px; cursor: pointer;
+  }
+  .heat-pick input { position: absolute; opacity: 0; pointer-events: none; }
+  .heat-pick input:checked + span { color: var(--slip-ink); }
+  .heat-pick label:has(input:checked) { background: var(--brass); border-color: var(--brass); color: var(--slip-ink); font-weight: 700; }
+  .heat-pick label:has(input:focus-visible) { outline: 2px solid var(--brass); outline-offset: 3px; }
+  .composer .input { max-width: none; font-size: 1rem; letter-spacing: 0; }
+  .composer .small { font-size: .9rem; color: var(--text-muted); margin: 6px 0 0; }
+  .composer-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  .reminder { background: rgba(31,7,21,.6); border-left: 3px solid var(--brass); padding: 10px 12px; margin: 0 0 16px; font-size: .92rem; }
+
+  /* ---------- toast ---------- */
+  .toast {
+    position: fixed; left: 50%; bottom: 20px; transform: translate(-50%, calc(100% + 40px));
+    background: var(--slip); color: var(--slip-ink); padding: 12px 18px; border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.5); max-width: calc(100vw - 32px); width: max-content;
+    transition: transform .25s ease-out, visibility 0s linear .25s; z-index: 10; font-weight: 700;
+    visibility: hidden;
+  }
+  .toast.show { transform: translate(-50%, 0); visibility: visible; transition: transform .25s ease-out; }
+  @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<header class="screen">
+  <div class="screen-inner">
+    <h1 class="title"><small>Velvet Collar Games</small>The Confession Box</h1>
+    <p class="lede">Slip a secret through the screen. No names, no accounts. The group reacts, and nobody wins or loses.</p>
+    <button class="btn btn-brass" id="openComposer" hidden>Write a confession</button>
+  </div>
+</header>
+
+<!-- Gate: house rules + group code -->
+<main class="gate" id="gate">
+  <h2>Before you come in</h2>
+  <ul class="rules">
+    <li><strong>Adults only.</strong> This box is for members of the group who are 21 or older.</li>
+    <li><strong>Only confess about yourself.</strong> Don't name, describe, or hint at anyone else, in the group or out of it.</li>
+    <li><strong>A confession isn't an invitation.</strong> Reading that someone is curious about something is not a yes to doing it with them.</li>
+    <li><strong>What's in the box stays in the box.</strong> No screenshots or sharing outside the group.</li>
+    <li><strong>Hosts read everything first.</strong> Anything mean, coercive, or identifying doesn't go up.</li>
+    <li><strong>Reactions are for support.</strong> There's no dislike button on purpose.</li>
+  </ul>
+  <form id="gateForm" novalidate>
+    <label class="field">
+      <span class="field-label">Group code</span>
+      <input class="input" id="codeInput" name="code" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+    </label>
+    <label class="check">
+      <input type="checkbox" id="agree" required>
+      <span>I'm 21 or older and I'll follow these rules.</span>
+    </label>
+    <p class="error" id="gateError" role="alert"></p>
+    <button class="btn btn-brass" type="submit" id="gateBtn">Open the box</button>
+  </form>
+  <p class="footer-note">You'll find the code pinned in the Telegram group.</p>
+</main>
+
+<!-- Wall -->
+<main class="wall" id="wall" hidden>
+  <div class="wall-head">
+    <h2>On the wall</h2>
+    <button class="refresh" id="refreshBtn">Refresh</button>
+  </div>
+  <div class="filters" role="group" aria-label="Filter by heat">
+    <button class="chip" data-filter="all" aria-pressed="true">Everything</button>
+    <button class="chip" data-filter="mild" aria-pressed="false">🌸 Mild</button>
+    <button class="chip" data-filter="spicy" aria-pressed="false">🌶️ Spicy</button>
+    <button class="chip" data-filter="fire" aria-pressed="false">🔥 Scorching</button>
+  </div>
+  <p class="error" id="wallError" role="alert" style="min-height:0"></p>
+  <ol class="slips" id="slips" aria-live="polite"></ol>
+  <p class="empty" id="empty" hidden></p>
+  <p class="footer-note">
+    Seen something on the wall that isn't okay? Message a host in Telegram and it comes down, no questions asked.
+    <br><button class="refresh" id="leaveBtn">Leave and forget the code on this device</button>
+  </p>
+</main>
+
+<!-- Composer -->
+<dialog id="composer" aria-labelledby="composerTitle">
+  <form class="composer" id="composeForm" method="dialog" novalidate>
+    <h2 id="composerTitle">Write a confession</h2>
+    <p class="hint">It goes to the hosts first and appears on the wall once they approve it. Nothing about you is saved, only the words and tags.</p>
+    <p class="reminder">Keep it about you. Leave out names, places, and anything that could point to someone else.</p>
+
+    <label class="visually-hidden" for="confText">Your confession</label>
+    <textarea id="confText" maxlength="1000" placeholder="I've never told anyone that…" required></textarea>
+    <div class="count" id="count">0 / 1000</div>
+
+    <fieldset>
+      <legend>How hot is it?</legend>
+      <div class="heat-pick">
+        <label><input type="radio" name="heat" value="mild" checked><span>🌸 Mild</span></label>
+        <label><input type="radio" name="heat" value="spicy"><span>🌶️ Spicy</span></label>
+        <label><input type="radio" name="heat" value="fire"><span>🔥 Scorching</span></label>
+      </div>
+    </fieldset>
+
+    <label class="field">
+      <span class="field-label">Content warning (optional)</span>
+      <input class="input" id="cwInput" maxlength="60" placeholder="e.g. impact, breath play, degradation">
+      <p class="small">Adding one blurs your confession until someone taps to read it.</p>
+    </label>
+
+    <p class="error" id="composeError" role="alert"></p>
+    <div class="composer-actions">
+      <button class="btn btn-ghost" type="button" id="cancelCompose">Cancel</button>
+      <button class="btn btn-brass" type="submit" id="sendBtn">Send to the hosts</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  // Where PocketBase lives (the Mac mini, through Cloudflare Tunnel).
+  const API = "https://confessions-api.jay-hosting.com/api/cb";
+
+  const REACTIONS = [
+    { key: "fire",   emoji: "🔥", label: "Hot" },
+    { key: "blush",  emoji: "😳", label: "Blushing" },
+    { key: "heart",  emoji: "🫶", label: "Love this for you" },
+    { key: "laugh",  emoji: "😂", label: "Ha" },
+    { key: "metoo",  emoji: "🙋", label: "Me too" },
+    { key: "eyes",   emoji: "👀", label: "Curious" },
+    { key: "purple", emoji: "💜", label: "Support" },
+  ];
+  const HEAT_LABEL = { mild: "Mild", spicy: "Spicy", fire: "Scorching" };
+
+  const $ = (id) => document.getElementById(id);
+  const store = {
+    get(k, fallback) { try { const v = localStorage.getItem(k); return v === null ? fallback : JSON.parse(v); } catch { return fallback; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+    del(k) { try { localStorage.removeItem(k); } catch {} },
+  };
+
+  let code = store.get("cb.code", "");
+  let mine = store.get("cb.reacted", {});   // { confessionId: ["fire", ...] } kept on this device only
+  let items = [];
+  let filter = "all";
+  const revealed = new Set();
+  let pollTimer = null;
+
+  // ---------- api ----------
+  async function api(path, opts = {}) {
+    let res;
+    try {
+      res = await fetch(API + path, {
+        ...opts,
+        headers: { "Content-Type": "application/json", "X-Group-Code": code, ...(opts.headers || {}) },
+      });
+    } catch {
+      throw new Error("Can't reach the confession box right now. The host's server may be offline. Try again in a few minutes.");
+    }
+    let data = {};
+    try { data = await res.json(); } catch {}
+    if (!res.ok) {
+      const err = new Error(
+        res.status === 429 ? "That's a lot at once. Wait a few minutes and try again." :
+        (data && data.message) || "Something went wrong. Try again."
+      );
+      err.status = res.status;
+      throw err;
+    }
+    return data;
+  }
+
+  // ---------- gate ----------
+  async function enter(c, fromSaved) {
+    code = c.trim();
+    const btn = $("gateBtn");
+    btn.disabled = true;
+    $("gateError").textContent = "";
+    try {
+      await api("/check");
+      store.set("cb.code", code);
+      $("gate").hidden = true;
+      $("wall").hidden = false;
+      $("openComposer").hidden = false;
+      await loadWall();
+      startPolling();
+    } catch (e) {
+      if (e.status === 401) {
+        store.del("cb.code");
+        $("gateError").textContent = fromSaved ? "The group code has changed. Enter the new one from Telegram." : "That code doesn't match. Check the pinned message in Telegram.";
+      } else {
+        $("gateError").textContent = e.message;
+      }
+      $("gate").hidden = false;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  $("gateForm").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const c = $("codeInput").value.trim();
+    if (!c) { $("gateError").textContent = "Enter the group code."; $("codeInput").focus(); return; }
+    if (!$("agree").checked) { $("gateError").textContent = "Tick the box to agree to the rules first."; $("agree").focus(); return; }
+    enter(c, false);
+  });
+
+  $("leaveBtn").addEventListener("click", () => {
+    store.del("cb.code");
+    code = "";
+    stopPolling();
+    $("wall").hidden = true;
+    $("openComposer").hidden = true;
+    $("gate").hidden = false;
+    $("codeInput").value = "";
+    $("agree").checked = false;
+    toast("You've left. The code is no longer saved here.");
+  });
+
+  // ---------- wall ----------
+  async function loadWall(quiet) {
+    try {
+      const data = await api("/wall");
+      items = data.items || [];
+      $("wallError").textContent = "";
+      render();
+    } catch (e) {
+      if (e.status === 401) { $("leaveBtn").click(); $("gateError").textContent = "The group code has changed. Enter the new one from Telegram."; return; }
+      if (!quiet) $("wallError").textContent = e.message;
+    }
+  }
+
+  function timeAgo(s) {
+    if (!s) return "";
+    const t = new Date(s.replace(" ", "T"));
+    const sec = Math.max(0, (Date.now() - t.getTime()) / 1000);
+    if (sec < 60) return "just now";
+    if (sec < 3600) return Math.floor(sec / 60) + " min ago";
+    if (sec < 86400) return Math.floor(sec / 3600) + " h ago";
+    const d = Math.floor(sec / 86400);
+    return d === 1 ? "yesterday" : d + " days ago";
+  }
+
+  function render() {
+    const list = $("slips");
+    const shown = items.filter((i) => filter === "all" || i.heat === filter);
+    list.replaceChildren(...shown.map(slipEl));
+    const empty = $("empty");
+    if (!items.length) {
+      empty.textContent = "The box is empty so far. Write the first confession and it'll appear here once a host approves it.";
+      empty.hidden = false;
+    } else if (!shown.length) {
+      empty.textContent = "Nothing at this heat level yet. Try another filter.";
+      empty.hidden = false;
+    } else {
+      empty.hidden = true;
+    }
+  }
+
+  function slipEl(item) {
+    const li = document.createElement("li");
+    li.className = "slip";
+
+    const meta = document.createElement("div");
+    meta.className = "slip-meta";
+    const heat = document.createElement("span");
+    heat.className = "heat heat-" + item.heat;
+    heat.textContent = HEAT_LABEL[item.heat] || "";
+    const when = document.createElement("span");
+    when.textContent = timeAgo(item.at);
+    meta.append(heat, when);
+
+    const wrap = document.createElement("div");
+    wrap.className = "cw-wrap";
+    const text = document.createElement("p");
+    text.className = "slip-text";
+    text.textContent = item.text;
+    wrap.append(text);
+    if (item.cw && !revealed.has(item.id)) {
+      wrap.classList.add("veiled");
+      text.setAttribute("aria-hidden", "true");
+      const b = document.createElement("button");
+      b.className = "cw-btn";
+      b.type = "button";
+      const s = document.createElement("strong");
+      s.textContent = "CW: " + item.cw;
+      const sm = document.createElement("span");
+      sm.textContent = "Tap to read";
+      b.append(s, sm);
+      b.addEventListener("click", () => {
+        revealed.add(item.id);
+        wrap.classList.remove("veiled");
+        text.removeAttribute("aria-hidden");
+        text.setAttribute("tabindex", "-1");
+        text.focus();
+      });
+      wrap.append(b);
+    } else if (item.cw) {
+      const cwNote = document.createElement("span");
+      cwNote.textContent = "CW: " + item.cw;
+      when.before(cwNote);
+    }
+
+    const bar = document.createElement("div");
+    bar.className = "reactions";
+    bar.setAttribute("role", "group");
+    bar.setAttribute("aria-label", "Reactions");
+    const myList = mine[item.id] || [];
+    REACTIONS.forEach((r) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "react";
+      const on = myList.includes(r.key);
+      const n = (item.reactions && item.reactions[r.key]) || 0;
+      b.setAttribute("aria-pressed", String(on));
+      b.setAttribute("aria-label", `${r.label}, ${n} so far`);
+      b.title = r.label;
+      const e = document.createElement("span");
+      e.textContent = r.emoji;
+      e.setAttribute("aria-hidden", "true");
+      const c = document.createElement("span");
+      c.className = "n";
+      c.textContent = n ? String(n) : "";
+      b.append(e, c);
+      b.addEventListener("click", () => react(item, r.key, b));
+      bar.append(b);
+    });
+
+    li.append(meta, wrap, bar);
+    return li;
+  }
+
+  async function react(item, key, btn) {
+    const list = mine[item.id] || [];
+    const on = list.includes(key);
+    const op = on ? "remove" : "add";
+    btn.disabled = true;
+    try {
+      const updated = await api("/react", { method: "POST", body: JSON.stringify({ id: item.id, emoji: key, op }) });
+      mine[item.id] = on ? list.filter((k) => k !== key) : [...list, key];
+      store.set("cb.reacted", mine);
+      const idx = items.findIndex((i) => i.id === item.id);
+      if (idx > -1) items[idx] = { ...items[idx], reactions: updated.reactions };
+      render();
+      const fresh = document.querySelectorAll(".slip");
+      // keep focus on the same reaction after re-render
+      const shown = items.filter((i) => filter === "all" || i.heat === filter);
+      const pos = shown.findIndex((i) => i.id === item.id);
+      const target = fresh[pos] && fresh[pos].querySelectorAll(".react")[REACTIONS.findIndex((r) => r.key === key)];
+      if (target) { target.focus(); if (!on) target.classList.add("pop"); }
+    } catch (e) {
+      btn.disabled = false;
+      toast(e.message);
+      if (e.status === 404) loadWall(true);
+    }
+  }
+
+  document.querySelectorAll(".chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      filter = chip.dataset.filter;
+      document.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", String(c === chip)));
+      render();
+    });
+  });
+
+  $("refreshBtn").addEventListener("click", () => loadWall());
+
+  function startPolling() {
+    stopPolling();
+    pollTimer = setInterval(() => { if (!document.hidden) loadWall(true); }, 30000);
+  }
+  function stopPolling() { if (pollTimer) clearInterval(pollTimer); pollTimer = null; }
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && code && !$("wall").hidden) loadWall(true); });
+
+  // ---------- composer ----------
+  const dlg = $("composer");
+  $("openComposer").addEventListener("click", () => {
+    $("composeError").textContent = "";
+    if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+    $("confText").focus();
+  });
+  $("cancelCompose").addEventListener("click", () => dlg.close());
+
+  $("confText").addEventListener("input", () => {
+    const n = $("confText").value.length;
+    $("count").textContent = `${n} / 1000`;
+    $("count").classList.toggle("over", n > 1000);
+    store.set("cb.draft", $("confText").value);
+  });
+  const draft = store.get("cb.draft", "");
+  if (draft) { $("confText").value = draft; $("count").textContent = `${draft.length} / 1000`; }
+
+  $("composeForm").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const text = $("confText").value.trim();
+    const heat = (document.querySelector('input[name="heat"]:checked') || {}).value;
+    const cw = $("cwInput").value.trim();
+    if (text.length < 3) { $("composeError").textContent = "Write a little more first."; $("confText").focus(); return; }
+    const btn = $("sendBtn");
+    btn.disabled = true;
+    $("composeError").textContent = "";
+    try {
+      await api("/confess", { method: "POST", body: JSON.stringify({ text, heat, cw }) });
+      $("confText").value = "";
+      $("cwInput").value = "";
+      $("count").textContent = "0 / 1000";
+      store.del("cb.draft");
+      dlg.close();
+      toast("Sent to the hosts. It shows up on the wall once it's approved.");
+    } catch (e) {
+      $("composeError").textContent = e.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ---------- toast ----------
+  let toastTimer;
+  function toast(msg) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("show"), 4200);
+  }
+
+  // ---------- start ----------
+  if (code) enter(code, true);
+})();
+</script>
+</body>
+</html>
